@@ -20,64 +20,49 @@ const { NotImplementedError } = require('../extensions/index.js');
  * 
  */
 class VigenereCipheringMachine {
-  constructor(isDirect = true) {
-    // Конструктор, который определяет, будет ли шифрование прямым или обратным.
-    this.isDirect = isDirect;
+  constructor(direct = true) {
+    this.direct = direct;
   }
-
-  processMessage(message, key, encrypt) {
-    if (!message || !key) {
-      throw new Error('Message and key are required');
+  processString(string, key, encrypt) {
+    if (!string || !key) {
+      throw new Error("Incorrect arguments!");
     }
 
-    // Приводим все символы сообщения и ключа к верхнему регистру
-    const messageUpper = message.toUpperCase();
-    const keyUpper = key.toUpperCase();
-    let result = '';
+    string = string.toUpperCase();
+    key = key.toUpperCase();
 
-    let keyIndex = 0; // Индекс для итерации по символам ключа
-    for (let i = 0; i < messageUpper.length; i++) {
-      if (messageUpper[i].match(/[A-Z]/)) {
-        // Если символ сообщения является буквой (от A до Z)
-        const messageCharCode = messageUpper.charCodeAt(i) - 65; // Преобразуем в числовой код (A=0, B=1, ..., Z=25)
-        const keyCharCode = keyUpper.charCodeAt(keyIndex % keyUpper.length) - 65; // Аналогично для ключа
-        let processedCharCode;
+    let result = "";
+    let keyIndex = 0;
 
-        // Для шифрования (encrypt) и дешифрования (decrypt) рассчитываем новый код буквы
-        if (encrypt) {
-          processedCharCode = (messageCharCode + keyCharCode) % 26; // Сдвиг для шифрования
-        } else {
-          processedCharCode = (messageCharCode - keyCharCode + 26) % 26; // Сдвиг для дешифрования
-        }
+    for (let i = 0; i < string.length; i++) {
+      const char = string[i];
 
-        // Добавляем результат в строку
-        result += String.fromCharCode(processedCharCode + 65); // Преобразуем обратно в символ
-        keyIndex++; // Увеличиваем индекс для следующего символа ключа
+      if (char >= "A" && char <= "Z") {
+        const shift = encrypt ? 1 : -1;
+        const charCode =
+          ((char.charCodeAt(0) -
+            65 +
+            shift * (key[keyIndex % key.length].charCodeAt(0) - 65) +
+            26) %
+            26) +
+          65;
+        result += String.fromCharCode(charCode);
+        keyIndex++;
       } else {
-        // Если символ не буква, оставляем его без изменений
-        result += messageUpper[i];
+        result += char;
       }
     }
 
-    // Возвращаем результат в прямом или обратном порядке
-    return this.isDirect ? result : result.split('').reverse().join('');
+    return this.direct ? result : result.split("").reverse().join("");
   }
 
   encrypt(message, key) {
-    if (!message || !key) {
-      throw new Error('Message and key are required');
-    }
-    return this.processMessage(message, key, true); // Шифруем
+    return this.processString(message, key, true);
   }
-
   decrypt(encryptedMessage, key) {
-    if (!encryptedMessage || !key) {
-      throw new Error('Encrypted message and key are required');
-    }
-    return this.processMessage(encryptedMessage, key, false); // Дешифруем
+    return this.processString(encryptedMessage, key, false);
   }
 }
-
 module.exports = {
   VigenereCipheringMachine
 };
